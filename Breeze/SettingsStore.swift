@@ -5,20 +5,28 @@ final class SettingsStore: ObservableObject {
 
     private static let defaults = UserDefaults.standard
 
-    @Published var thresholdFahrenheit: Double {
-        didSet { Self.defaults.set(thresholdFahrenheit, forKey: "thresholdFahrenheit") }
+    @Published var upperThresholdFahrenheit: Double {
+        didSet { Self.defaults.set(upperThresholdFahrenheit, forKey: "thresholdFahrenheit") }
+    }
+
+    @Published var lowerThresholdFahrenheit: Double {
+        didSet { Self.defaults.set(lowerThresholdFahrenheit, forKey: "lowerThresholdFahrenheit") }
     }
 
     @Published var useFahrenheit: Bool {
         didSet { Self.defaults.set(useFahrenheit, forKey: "useFahrenheit") }
     }
 
-    @Published var messageAbove: String {
-        didSet { Self.defaults.set(messageAbove, forKey: "messageAbove") }
+    @Published var messageTooHot: String {
+        didSet { Self.defaults.set(messageTooHot, forKey: "messageAbove") }
     }
 
-    @Published var messageBelow: String {
-        didSet { Self.defaults.set(messageBelow, forKey: "messageBelow") }
+    @Published var messageTooCold: String {
+        didSet { Self.defaults.set(messageTooCold, forKey: "messageBelow") }
+    }
+
+    @Published var messageComfort: String {
+        didSet { Self.defaults.set(messageComfort, forKey: "messageComfort") }
     }
 
     @Published var cooldownMinutes: Int {
@@ -45,10 +53,12 @@ final class SettingsStore: ObservableObject {
 
     init() {
         let ud = Self.defaults
-        thresholdFahrenheit = { let v = ud.double(forKey: "thresholdFahrenheit"); return v == 0 ? 72.0 : v }()
+        upperThresholdFahrenheit = { let v = ud.double(forKey: "thresholdFahrenheit"); return v == 0 ? 72.0 : v }()
+        lowerThresholdFahrenheit = { let v = ud.double(forKey: "lowerThresholdFahrenheit"); return v == 0 ? 66.0 : v }()
         useFahrenheit = ud.object(forKey: "useFahrenheit") == nil ? true : ud.bool(forKey: "useFahrenheit")
-        messageAbove = ud.string(forKey: "messageAbove") ?? "Close the windows! It\u{2019}s getting hot."
-        messageBelow = ud.string(forKey: "messageBelow") ?? "Open the windows! Time to let that breeze in."
+        messageTooHot = ud.string(forKey: "messageAbove") ?? "Close the windows! It\u{2019}s getting hot."
+        messageTooCold = ud.string(forKey: "messageBelow") ?? "Close the windows! It\u{2019}s getting cold."
+        messageComfort = ud.string(forKey: "messageComfort") ?? "Open the windows! Time to let that breeze in."
         cooldownMinutes = { let v = ud.integer(forKey: "cooldownMinutes"); return v == 0 ? 30 : v }()
         pollIntervalMinutes = { let v = ud.integer(forKey: "pollIntervalMinutes"); return v == 0 ? 10 : v }()
         locationName = ud.string(forKey: "locationName") ?? ""
@@ -56,9 +66,14 @@ final class SettingsStore: ObservableObject {
         storedLongitude = ud.double(forKey: "storedLongitude")
     }
 
-    var thresholdDisplay: Double {
-        get { useFahrenheit ? thresholdFahrenheit : Self.fahrenheitToCelsius(thresholdFahrenheit) }
-        set { thresholdFahrenheit = useFahrenheit ? newValue : Self.celsiusToFahrenheit(newValue) }
+    var upperThresholdDisplay: Double {
+        get { useFahrenheit ? upperThresholdFahrenheit : Self.fahrenheitToCelsius(upperThresholdFahrenheit) }
+        set { upperThresholdFahrenheit = useFahrenheit ? newValue : Self.celsiusToFahrenheit(newValue) }
+    }
+
+    var lowerThresholdDisplay: Double {
+        get { useFahrenheit ? lowerThresholdFahrenheit : Self.fahrenheitToCelsius(lowerThresholdFahrenheit) }
+        set { lowerThresholdFahrenheit = useFahrenheit ? newValue : Self.celsiusToFahrenheit(newValue) }
     }
 
     static func fahrenheitToCelsius(_ f: Double) -> Double {
@@ -74,7 +89,7 @@ final class SettingsStore: ObservableObject {
         return String(format: "%.1f\u{00B0}%@", value, useFahrenheit ? "F" : "C")
     }
 
-    func formatThreshold() -> String {
-        formatTemperature(thresholdFahrenheit)
+    func formatThresholdRange() -> String {
+        "\(formatTemperature(lowerThresholdFahrenheit)) – \(formatTemperature(upperThresholdFahrenheit))"
     }
 }

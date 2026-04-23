@@ -51,9 +51,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
     }
 
     func testAlert(_ direction: TempDirection) {
-        let fakeTemp = direction == .crossedAbove
-            ? settingsStore.thresholdFahrenheit + 3
-            : settingsStore.thresholdFahrenheit - 3
+        let fakeTemp: Double
+        switch direction {
+        case .tooHot: fakeTemp = settingsStore.upperThresholdFahrenheit + 3
+        case .tooCold: fakeTemp = settingsStore.lowerThresholdFahrenheit - 3
+        case .comfortZone: fakeTemp = (settingsStore.lowerThresholdFahrenheit + settingsStore.upperThresholdFahrenheit) / 2
+        }
         overlayController.show(
             direction: direction,
             settingsStore: settingsStore,
@@ -84,7 +87,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, ObservableObject {
 
         let direction = thresholdMonitor.process(
             tempF: tempF,
-            thresholdF: settingsStore.thresholdFahrenheit,
+            lowerF: settingsStore.lowerThresholdFahrenheit,
+            upperF: settingsStore.upperThresholdFahrenheit,
             cooldownSeconds: Double(settingsStore.cooldownMinutes * 60)
         )
 

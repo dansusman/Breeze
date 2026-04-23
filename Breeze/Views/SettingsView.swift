@@ -39,11 +39,22 @@ struct SettingsView: View {
                     .pickerStyle(.segmented)
 
                     HStack {
-                        Text("Threshold")
+                        Text("Open windows")
                             .foregroundStyle(.secondary)
-                        Slider(value: thresholdBinding, in: thresholdRange, step: 1)
+                        Slider(value: lowerThresholdBinding, in: lowerThresholdRange, step: 1)
                         Text(String(format: "%.0f\u{00B0}%@",
-                                    settingsStore.thresholdDisplay,
+                                    settingsStore.lowerThresholdDisplay,
+                                    settingsStore.useFahrenheit ? "F" : "C"))
+                            .monospacedDigit()
+                            .frame(width: 64, alignment: .trailing)
+                    }
+
+                    HStack {
+                        Text("Close windows")
+                            .foregroundStyle(.secondary)
+                        Slider(value: upperThresholdBinding, in: upperThresholdRange, step: 1)
+                        Text(String(format: "%.0f\u{00B0}%@",
+                                    settingsStore.upperThresholdDisplay,
                                     settingsStore.useFahrenheit ? "F" : "C"))
                             .monospacedDigit()
                             .frame(width: 64, alignment: .trailing)
@@ -54,17 +65,24 @@ struct SettingsView: View {
 
             Section("Notifications") {
                 HStack {
-                    Text("Above threshold")
+                    Text("Too hot")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TextField("", text: $settingsStore.messageAbove)
+                    TextField("", text: $settingsStore.messageTooHot)
                         .multilineTextAlignment(.leading)
                 }
                 HStack {
-                    Text("Below threshold")
+                    Text("Too cold")
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TextField("", text: $settingsStore.messageBelow)
+                    TextField("", text: $settingsStore.messageTooCold)
+                        .multilineTextAlignment(.leading)
+                }
+                HStack {
+                    Text("Comfort zone")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    TextField("", text: $settingsStore.messageComfort)
                         .multilineTextAlignment(.leading)
                 }
             }
@@ -87,7 +105,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 440, height: 500)
+        .frame(width: 440, height: 560)
         .onAppear {
             locationQuery = settingsStore.locationName.components(separatedBy: ",").first ?? ""
         }
@@ -111,14 +129,35 @@ struct SettingsView: View {
         }
     }
 
-    private var thresholdBinding: Binding<Double> {
+    private var lowerThresholdBinding: Binding<Double> {
         Binding(
-            get: { settingsStore.thresholdDisplay },
-            set: { settingsStore.thresholdDisplay = $0 }
+            get: { settingsStore.lowerThresholdDisplay },
+            set: {
+                settingsStore.lowerThresholdDisplay = $0
+                if settingsStore.lowerThresholdFahrenheit > settingsStore.upperThresholdFahrenheit - 2 {
+                    settingsStore.upperThresholdFahrenheit = settingsStore.lowerThresholdFahrenheit + 2
+                }
+            }
         )
     }
 
-    private var thresholdRange: ClosedRange<Double> {
-        settingsStore.useFahrenheit ? 40.0...100.0 : 4.0...38.0
+    private var upperThresholdBinding: Binding<Double> {
+        Binding(
+            get: { settingsStore.upperThresholdDisplay },
+            set: {
+                settingsStore.upperThresholdDisplay = $0
+                if settingsStore.upperThresholdFahrenheit < settingsStore.lowerThresholdFahrenheit + 2 {
+                    settingsStore.lowerThresholdFahrenheit = settingsStore.upperThresholdFahrenheit - 2
+                }
+            }
+        )
+    }
+
+    private var lowerThresholdRange: ClosedRange<Double> {
+        settingsStore.useFahrenheit ? 40.0...98.0 : 4.0...37.0
+    }
+
+    private var upperThresholdRange: ClosedRange<Double> {
+        settingsStore.useFahrenheit ? 42.0...100.0 : 5.0...38.0
     }
 }
