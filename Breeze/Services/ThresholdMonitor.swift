@@ -1,32 +1,44 @@
 import Foundation
 
 enum TempDirection {
-    case crossedAbove
-    case crossedBelow
+    case tooHot
+    case tooCold
+    case comfortZone
 }
 
 final class ThresholdMonitor {
 
-    private enum Side { case above, below }
+    enum Zone { case cold, comfort, hot }
 
-    private var lastSide: Side?
+    private var lastZone: Zone?
     private var lastNotificationDate: Date?
 
-    func process(tempF: Double, thresholdF: Double, cooldownSeconds: Double) -> TempDirection? {
-        let side: Side = tempF >= thresholdF ? .above : .below
-        defer { lastSide = side }
+    static func zone(tempF: Double, lowerF: Double, upperF: Double) -> Zone {
+        if tempF >= upperF { return .hot }
+        if tempF < lowerF { return .cold }
+        return .comfort
+    }
 
-        guard let last = lastSide, last != side else { return nil }
+    func process(tempF: Double, lowerF: Double, upperF: Double, cooldownSeconds: Double) -> TempDirection? {
+        let current = Self.zone(tempF: tempF, lowerF: lowerF, upperF: upperF)
+        defer { lastZone = current }
+
+        guard let last = lastZone, last != current else { return nil }
 
         let elapsed = lastNotificationDate.map { Date().timeIntervalSince($0) } ?? .infinity
         guard elapsed >= cooldownSeconds else { return nil }
 
         lastNotificationDate = Date()
-        return side == .above ? .crossedAbove : .crossedBelow
+
+        switch current {
+        case .hot: return .tooHot
+        case .cold: return .tooCold
+        case .comfort: return .comfortZone
+        }
     }
 
     func reset() {
-        lastSide = nil
+        lastZone = nil
         lastNotificationDate = nil
     }
 }

@@ -9,11 +9,37 @@ struct OverlayView: View {
 
     @State private var iconAnimating = false
 
-    private var isHot: Bool { direction == .crossedAbove }
-    private var accentColor: Color { isHot ? .orange : .cyan }
-    private var iconName: String { isHot ? "thermometer.sun.fill" : "thermometer.snowflake" }
-    private var directionLabel: String { isHot ? "\u{2191} Getting warmer" : "\u{2193} Cooling down" }
-    private var message: String { isHot ? settingsStore.messageAbove : settingsStore.messageBelow }
+    private var accentColor: Color {
+        switch direction {
+        case .tooHot: return .orange
+        case .tooCold: return .cyan
+        case .comfortZone: return .green
+        }
+    }
+
+    private var iconName: String {
+        switch direction {
+        case .tooHot: return "thermometer.sun.fill"
+        case .tooCold: return "thermometer.snowflake"
+        case .comfortZone: return "wind"
+        }
+    }
+
+    private var directionLabel: String {
+        switch direction {
+        case .tooHot: return "\u{2191} Getting hot"
+        case .tooCold: return "\u{2193} Getting cold"
+        case .comfortZone: return "Perfect temperature"
+        }
+    }
+
+    private var message: String {
+        switch direction {
+        case .tooHot: return settingsStore.messageTooHot
+        case .tooCold: return settingsStore.messageTooCold
+        case .comfortZone: return settingsStore.messageComfort
+        }
+    }
 
     var body: some View {
         ZStack {

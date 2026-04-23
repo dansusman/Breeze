@@ -11,8 +11,9 @@ struct MenuBarContentView: View {
             Divider()
             Button("Refresh Now") { appDelegate.refreshNow() }
             Menu("Test Alert\u{2026}") {
-                Button("Test \u{2191} Hot Alert") { appDelegate.testAlert(.crossedAbove) }
-                Button("Test \u{2193} Cool Alert") { appDelegate.testAlert(.crossedBelow) }
+                Button("Test \u{2191} Too Hot") { appDelegate.testAlert(.tooHot) }
+                Button("Test \u{2193} Too Cold") { appDelegate.testAlert(.tooCold) }
+                Button("Test \u{2714} Comfort Zone") { appDelegate.testAlert(.comfortZone) }
             }
             Divider()
             Button("Settings\u{2026}") { appDelegate.openSettings() }
@@ -30,7 +31,7 @@ struct MenuBarContentView: View {
                     .foregroundStyle(.red)
             } else if let temp = appDelegate.currentTempF {
                 Text("Now: \(settingsStore.formatTemperature(temp))")
-                Text("Threshold: \(settingsStore.formatThreshold())")
+                Text("Comfort: \(settingsStore.formatThresholdRange())")
             } else {
                 Text("Fetching weather\u{2026}")
             }
